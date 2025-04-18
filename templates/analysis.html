@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YAC AI Document Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
+            font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+        }
+        .impact-section {
+            background: #fff;
+            border-radius: 14px;
+            padding: 2rem 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+        }
+        .chart-container {
+            min-height: 320px;
+            margin-bottom: 2.5rem;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.03);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-card {
+            background: #f4f6fb;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+            text-align: center;
+        }
+        .section-title {
+            margin-top: 2.5rem;
+            margin-bottom: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+        }
+        .spinner-border {
+            width: 2.5rem;
+            height: 2.5rem;
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="display-5">Document Collection Analysis</h1>
+        <a href="/" class="btn btn-outline-primary">← Back to Explorer</a>
+    </div>
+
+    <!-- Key Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4 stat-card">
+            <h5>Total Documents</h5>
+            <div id="stat-doc-count" class="fs-3 fw-bold">...</div>
+        </div>
+        <div class="col-md-4 stat-card">
+            <h5>Average Document Length</h5>
+            <div id="stat-avg-length" class="fs-3 fw-bold">...</div>
+        </div>
+        <div class="col-md-4 stat-card">
+            <h5>Date Range</h5>
+            <div id="stat-date-range" class="fs-5">...</div>
+        </div>
+    </div>
+
+    <!-- Keyword Frequency Section -->
+    <h2 class="section-title">Top Keywords</h2>
+    <div class="chart-container" id="keyword-bar-chart">
+        <div class="d-flex flex-column align-items-center w-100">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+            <div class="mt-2 text-muted">Loading keyword chart...</div>
+        </div>
+    </div>
+    <div class="chart-container" id="keyword-wordcloud">
+        <div class="d-flex flex-column align-items-center w-100">
+            <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+            <div class="mt-2 text-muted">Loading word cloud...</div>
+        </div>
+    </div>
+
+    <!-- Sentiment Analysis Section -->
+    <h2 class="section-title">Sentiment Analysis</h2>
+    <div class="row mb-4">
+        <div class="col-md-6 chart-container" id="sentiment-pie-chart">
+            <div class="d-flex flex-column align-items-center w-100">
+                <div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div>
+                <div class="mt-2 text-muted">Loading sentiment chart...</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div id="sentiment-summary" class="fs-5">
+                <!-- JS will insert sentiment summary here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Impact Insights Section -->
+    <div class="impact-section">
+        <h2 class="section-title">Impact Insights</h2>
+        <div id="impact-insights">
+            <!-- JS or server will insert expert-level commentary and insights here -->
+            <p class="text-muted">Loading expert analysis...</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-cloud/build/d3.layout.cloud.js"></script>
+<script src="/static/app.js"></script>
+<script>
+// JS will fetch data from the API and render charts/insights here
+// Placeholders for future implementation
+</script>
+</body>
+</html> 

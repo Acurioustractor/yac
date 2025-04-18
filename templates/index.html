@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>YAC AI Document Manager</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css?v={{ app_version }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css?v={{ app_version }}" rel="stylesheet">
+    <style>
+        /* Add version variable in comment to force refresh when app changes */
+        /* App Version: {{ app_version }} */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .container {
+                padding: 15px;
+            }
+            .doc-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .doc-header .button {
+                margin-top: 10px;
+                align-self: flex-start;
+            }
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+        h2 {
+            color: #444;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            padding: 18px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #0066cc;
+            display: block;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        li:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .doc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .doc-title {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #0066cc;
+        }
+        .doc-meta {
+            color: #666;
+            font-size: 0.9em;
+            margin: 8px 0;
+            line-height: 1.4;
+        }
+        .doc-summary {
+            margin-top: 12px;
+            font-style: italic;
+            color: #555;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            line-height: 1.5;
+        }
+        a {
+            text-decoration: none;
+            color: #0066cc;
+        }
+        .button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-weight: 500;
+        }
+        .button:hover {
+            background-color: #0055aa;
+        }
+        #test-api-section {
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+        #api-test-result {
+            margin-left: 15px;
+            font-weight: 500;
+        }
+        .search-box {
+            margin: 20px 0;
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-left: 40px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+        .search-box input:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+        }
+        .search-box:before {
+            content: "🔍";
+            position: absolute;
+            left: 15px;
+            top: 12px;
+            font-size: 1rem;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+        .filter-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: white;
+        }
+        .filter-group select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.2);
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
+        }
+        .reset-button {
+            background-color: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .error-message {
+            color: #e53935;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #ffebee;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 4px solid #e53935;
+        }
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+        }
+        .loading:after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid #ddd;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .debug-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        #debug-output {
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: auto;
+            font-size: 0.85rem;
+        }
+        .document-count {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .no-documents {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .empty-results {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            color: #666;
+            margin-top: 20px;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 102, 204, 0.3);
+            border-radius: 50%;
+            border-top-color: #0066cc;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        /* Added CSS for button spacing */
+        .doc-buttons {
+            display: flex;
+            gap: 8px; /* Add space between buttons */
+            margin-left: auto; /* Push buttons to the right if header uses flex */
+        }
+        .button-details {
+             background-color: #6c757d; /* Grey color for details button */
+        }
+        .button-details:hover {
+             background-color: #5a6268;
+        }
+        /* Ensure buttons within the container have consistent look */
+        .doc-buttons .button {
+            padding: 6px 12px; /* Slightly smaller padding */
+            font-size: 0.9rem; /* Slightly smaller font */
+            text-decoration: none; /* Remove underline from <a> tags styled as buttons */
+            display: inline-block; /* Ensure proper alignment */
+            vertical-align: middle; /* Align vertically */
+            text-align: center;
+        }
+        /* Added CSS for keyword buttons */
+        .keywords-container {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #eee; /* Optional separator */
+        }
+        .keyword-btn {
+            margin-right: 5px;
+            margin-bottom: 5px;
+            font-size: 0.8rem; /* Smaller font for keywords */
+            padding: 2px 6px; /* Smaller padding */
+        }
+        .doc-icon {
+            margin-right: 10px;
+            width: 24px;
+            text-align: center;
+        }
+        .webpage-icon {
+            color: #0066cc;
+        }
+        .pdf-icon {
+            color: #e53935;
+        }
+        .button-download {
+            background-color: #28a745; /* Green for download */
+        }
+        .button-download:hover {
+            background-color: #218838;
+        }
+        .button-visit {
+            background-color: #17a2b8; /* Teal for visit */
+        }
+        .button-visit:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="display-5">YAC Document Explorer</h1>
+            <a href="/analysis" class="btn btn-outline-primary btn-lg">Analysis Dashboard</a>
+        </div>
+        <div id="error-container" class="error-message" style="display: none;"></div>
+        
+        <h2>Documents</h2>
+        
+        <div class="search-box">
+            <input type="text" id="document-search" placeholder="Search documents...">
+        </div>
+        
+        <div class="filters">
+            <div class="filter-group">
+                <label for="doc-type-filter">Document Type</label>
+                <select id="doc-type-filter">
+                    <option value="all">All Types</option>
+                    <option value="pdf">PDF Documents</option>
+                    <option value="webpage">Web Pages</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="category-filter">Category</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="Form">Forms</option>
+                    <option value="Volunteer">Volunteer Forms</option>
+                    <option value="Annual-Report">Annual Reports</option>
+                    <option value="Youth-Justice">Youth Justice</option>
+                    <option value="Child">Child Protection</option>
+                    <option value="Legal">Legal Resources</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="year-filter">Year</label>
+                <select id="year-filter">
+                    <option value="">All Years</option>
+                    <option value="2024">2024</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="sort-order">Sort By</label>
+                <select id="sort-order">
+                    <option value="date-desc">Date (Newest First)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-buttons">
+            <button id="apply-filters" class="button">Apply Filters</button>
+            <button id="reset-filters" class="button reset-button">Reset</button>
+        </div>
+        
+        <ul id="document-list">
+            <li>Loading documents...</li>
+        </ul>
+    </div>
+
+    <script>
+        console.log('YAC AI script loaded!');
+        document.addEventListener('DOMContentLoaded', function() {
+            const documentList = document.getElementById('document-list');
+            const errorContainer = document.getElementById('error-container');
+            const searchInput = document.getElementById('document-search');
+            const categoryFilter = document.getElementById('category-filter');
+            const yearFilter = document.getElementById('year-filter');
+            const sortOrder = document.getElementById('sort-order');
+            const docTypeFilter = document.getElementById('doc-type-filter');
+            const applyFiltersBtn = document.getElementById('apply-filters');
+            const resetFiltersBtn = document.getElementById('reset-filters');
+            
+            // Direct document dates mapping - source of truth
+            const fixedDates = {
+                'YAC-Legal-Volunteer-Form': '2022-12-19',
+                'YAC-Volunteer-Form': '2022-12-19',
+                'Being-in-Care': '2023-11-15',
+                'Annual-Report-2024': '2024-03-15',
+                'Annual-Report-2023': '2023-03-20',
+                'Annual-Report-2022': '2022-03-25',
+                'Annual-Report-2021': '2021-03-18',
+                'Annual-Report-2020': '2020-03-22',
+                'YAC-Annual-Report': '2023-03-20'
+            };
+            
+            // Load all documents
+            function loadDocuments() {
+                // Clear the document list and count display
+                const countDiv = document.querySelector('.document-count');
+                if(countDiv) countDiv.remove(); // Remove old count if exists
+                documentList.innerHTML = '<li class="loading">Loading documents...</li>';
+                
+                // Get selected document type
+                const docType = docTypeFilter.value;
+                
+                // Fetch documents with cache busting
+                const timestamp = new Date().getTime();
+                const random = Math.floor(Math.random() * 1000000);
+                const apiUrl = `/api/documents?v=${timestamp}&version={{ app_version }}&raw=true&nocache=${random}&type=${docType}`;
+                
+                fetch(apiUrl, {
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Clear loading message
+                    documentList.innerHTML = '';
+                    
+                    // Show document count
+                    const countDiv = document.createElement('div');
+                    countDiv.className = 'document-count';
+                    countDiv.textContent = `Found ${data.length} documents`;
+                    documentList.parentNode.insertBefore(countDiv, documentList);
+                    
+                    // Process and display each document
+                    data.forEach(doc => {
+                        console.log('Document:', doc);
+                        if (!doc || !doc.filename) return;
+                        
+                        const li = document.createElement('li');
+                        
+                        // Create header with title and download button
+                        const header = document.createElement('div');
+                        header.className = 'doc-header';
+                        
+                        // Add icon based on document type
+                        const iconSpan = document.createElement('span');
+                        if (doc.document_type === 'webpage') {
+                            iconSpan.className = 'doc-icon webpage-icon';
+                            iconSpan.innerHTML = '<i class="fas fa-globe"></i>';
+                        } else {
+                            iconSpan.className = 'doc-icon pdf-icon';
+                            iconSpan.innerHTML = '<i class="fas fa-file-pdf"></i>';
+                        }
+                        header.appendChild(iconSpan);
+                        
+                        // Format the title
+                        const titleSpan = document.createElement('span');
+                        titleSpan.className = 'doc-title';
+                        let title = doc.filename
+                            .replace(/_\d+\.pdf$/i, '') // Adjusted regex slightly
+                            .replace(/_/g, ' ')
+                            .replace(/\.pdf$/i, '');
+                        titleSpan.textContent = title;
+                        header.appendChild(titleSpan);
+
+                        // Create button container
+                        const buttonContainer = document.createElement('div');
+                        buttonContainer.className = 'doc-buttons'; // Use a container for buttons
+
+                        // Create Details button
+                        const detailsBtn = document.createElement('button');
+                        detailsBtn.className = 'button button-details'; // Use button element, add specific class
+                        detailsBtn.textContent = 'Details';
+                        
+                        // Add Event Listener here
+                        detailsBtn.addEventListener('click', () => {
+                            // Ensure the global showDetails function is called
+                            if (typeof showDetails === 'function') {
+                                showDetails(doc.filename);
+                            } else {
+                                console.error('showDetails function is not defined in the global scope!');
+                                alert('Error: Cannot show details functionality is not loaded correctly.');
+                            }
+                        });
+                        buttonContainer.appendChild(detailsBtn);
+
+                        // Create download button if it's a PDF
+                        if (doc.document_type !== 'webpage') {
+                            const downloadBtn = document.createElement('a');
+                            downloadBtn.href = `/download/${encodeURIComponent(doc.filename)}`;
+                            downloadBtn.className = 'button button-download'; // Add specific class
+                            downloadBtn.textContent = 'Download';
+                            downloadBtn.setAttribute('download', ''); // Add download attribute
+                            buttonContainer.appendChild(downloadBtn);
+                        } else {
+                            // For webpages, add a visit button
+                            const visitBtn = document.createElement('a');
+                            visitBtn.href = doc.source_url || '#';
+                            visitBtn.className = 'button button-visit';
+                            visitBtn.textContent = 'Visit';
+                            visitBtn.setAttribute('target', '_blank'); // Open in new tab
+                            visitBtn.setAttribute('rel', 'noopener noreferrer');
+                            buttonContainer.appendChild(visitBtn);
+                        }
+
+                        header.appendChild(buttonContainer); // Add button container to header
+                        li.appendChild(header);
+                        
+                        // Add metadata section
+                        const meta = document.createElement('div');
+                        meta.className = 'doc-meta';
+                        
+                        // Determine the correct date (Revised Logic)
+                        let displayDate = 'Unknown Date';
+
+                        // 1. Use document_date from DB if available (primary source)
+                        if (doc.document_date) {
+                            // Handle potential PDF 'D:YYYYMMDD...' format extracted by scraper
+                            if (typeof doc.document_date === 'string' && doc.document_date.startsWith('D:')) {
+                                const pdfDateStr = doc.document_date.substring(2, 10); // YYYYMMDD
+                                if (pdfDateStr.length === 8 && /^\d{8}$/.test(pdfDateStr)) {
+                                    // Format as DD/MM/YYYY
+                                    displayDate = `${pdfDateStr.substring(6, 8)}/${pdfDateStr.substring(4, 6)}/${pdfDateStr.substring(0, 4)}`;
+                                } else {
+                                    displayDate = 'Invalid DB Date'; 
+                                }
+                            } else {
+                                 // Assume it's already a usable date string (like YYYY-MM-DD)
+                                 // You might want more robust parsing here if other formats are possible
+                                 try {
+                                     const parsed = new Date(doc.document_date);
+                                     if (!isNaN(parsed.getTime())) {
+                                         const day = parsed.getDate().toString().padStart(2, '0');
+                                         const month = (parsed.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+                                         const year = parsed.getFullYear();
+                                         displayDate = `${day}/${month}/${year}`;
+                                     } else {
+                                         displayDate = doc.document_date; // Use raw if not parsable
+                                     }
+                                 } catch(e) {
+                                     displayDate = doc.document_date; // Fallback to raw string on error
+                                 }
+                            }
+                        }
+
+                        // 2. If DB date is still unknown/invalid, check fixed dates dictionary
+                        if (displayDate === 'Unknown Date' || displayDate === 'Invalid DB Date') {
+                            for (const [pattern, date] of Object.entries(fixedDates)) {
+                                if (doc.filename.includes(pattern)) {
+                                    displayDate = date; // Use the hardcoded date
+                                    break;
+                                }
+                            }
+                        }
+
+                        // 3. If still unknown, try download_date (excluding recent crawl dates)
+                        if (displayDate === 'Unknown Date' || displayDate === 'Invalid DB Date') {
+                             if (doc.download_date && 
+                                 !doc.download_date.startsWith('2025-04-17') && // Adjust these dates if needed
+                                 !doc.download_date.startsWith('2025-04-18')) {
+                                try {
+                                     const parsed = new Date(doc.download_date);
+                                     if (!isNaN(parsed.getTime())) {
+                                         const day = parsed.getDate().toString().padStart(2, '0');
+                                         const month = (parsed.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+                                         const year = parsed.getFullYear();
+                                         displayDate = `${day}/${month}/${year}`;
+                                     } else {
+                                          displayDate = doc.download_date.split(' ')[0]; // Fallback to date part
+                                     }
+                                } catch(e) {
+                                     displayDate = doc.download_date.split(' ')[0]; // Fallback
+                                }
+                            }
+                        }
+                        
+                        // Final fallback if nothing worked
+                        if (displayDate === 'Invalid DB Date') {
+                            displayDate = 'Unknown Date';
+                        }
+                        
+                        // Add date to metadata
+                        meta.innerHTML = `<strong>Date:</strong> ${displayDate}<br>`;
+                        
+                        // --- Reworked Keywords Display --- 
+                        if (doc.keywords) {
+                            console.log('Keywords for', doc.filename, ':', doc.keywords, 'type:', typeof doc.keywords);
+                            // Create a container for keyword buttons
+                            const keywordsContainer = document.createElement('div');
+                            keywordsContainer.className = 'keywords-container';
+                            // Add a label
+                            const keywordsLabel = document.createElement('strong');
+                            keywordsLabel.textContent = 'Keywords: ';
+                            keywordsContainer.appendChild(keywordsLabel);
+                            // Parse keywords safely - handle both JSON and comma-separated formats
+                            let keywordsList = [];
+                            try {
+                                if (typeof doc.keywords === 'string' && doc.keywords.trim().startsWith('[') && doc.keywords.trim().endsWith(']')) {
+                                    keywordsList = JSON.parse(doc.keywords);
+                                } else if (typeof doc.keywords === 'string') {
+                                    keywordsList = doc.keywords.split(',').map(k => k.trim()).filter(k => k && k.length > 1);
+                                } else if (Array.isArray(doc.keywords)) {
+                                    keywordsList = doc.keywords;
+                                }
+                            } catch (e) {
+                                console.error('Error parsing keywords:', e);
+                            }
+                            if (keywordsList.length > 0) {
+                                keywordsList.slice(0, 10).forEach(keyword => {
+                                    const keywordBtn = document.createElement('button');
+                                    keywordBtn.className = 'btn btn-outline-info btn-sm keyword-btn';
+                                    keywordBtn.textContent = keyword;
+                                    keywordBtn.type = 'button';
+                                    const escapedKeyword = keyword.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                    keywordBtn.setAttribute('onclick', `filterByKeyword('${escapedKeyword}')`);
+                                    keywordsContainer.appendChild(keywordBtn);
+                                });
+                                meta.appendChild(keywordsContainer);
+                            }
+                        }
+                        // --- End Reworked Keywords Display ---
+                        
+                        li.appendChild(meta);
+                        
+                        // Add summary if available
+                        if (doc.summary && doc.summary.trim().length > 0) {
+                            const summary = document.createElement('div');
+                            summary.className = 'doc-summary';
+                            summary.textContent = doc.summary.substring(0, 200) + 
+                                (doc.summary.length > 200 ? '...' : '');
+                            li.appendChild(summary);
+                        }
+                        
+                        documentList.appendChild(li);
+                    }); // End of data.forEach loop
+                    
+                    // Apply any active filters
+                    if (categoryFilter.value || yearFilter.value || sortOrder.value !== 'date-desc') {
+                        applyFilters();
+                    }
+                })
+                .catch(error => {
+                    errorContainer.textContent = `Error: ${error.message}`;
+                    errorContainer.style.display = 'block';
+                    documentList.innerHTML = '<li>Failed to load documents</li>';
+                });
+            }
+            
+            // Apply filters to documents
+            function applyFilters() {
+                const category = categoryFilter.value.toLowerCase();
+                const year = yearFilter.value;
+                const sort = sortOrder.value;
+                const docType = docTypeFilter.value;
+                
+                // If doc type filter changed, reload completely to get filtered results from server
+                if (docType !== 'all') {
+                    loadDocuments();
+                    return;
+                }
+                
+                // Get all document items
+                const items = Array.from(document.querySelectorAll('#document-list li'));
+                
+                // Skip the first item if it's just a message
+                if (items.length === 1 && !items[0].querySelector('.doc-header')) {
+                    return;
+                }
+                
+                // Filter the documents
+                let visibleCount = 0;
+                items.forEach(item => {
+                    const title = item.querySelector('.doc-title')?.textContent.toLowerCase() || '';
+                    const dateMatch = item.querySelector('.doc-meta')?.textContent.match(/Date:\s*(\d{4})-/) || [];
+                    const documentYear = dateMatch[1] || '';
+                    
+                    let visible = true;
+                    
+                    // Apply category filter
+                    if (category && !title.includes(category.toLowerCase())) {
+                        visible = false;
+                    }
+                    
+                    // Apply year filter
+                    if (year && documentYear !== year) {
+                        visible = false;
+                    }
+                    
+                    item.style.display = visible ? 'block' : 'none';
+                    if (visible) visibleCount++;
+                });
+                
+                // Sort the documents
+                sortDocuments(sort, items);
+                
+                // Update document count
+                updateDocumentCount(visibleCount);
+            }
+            
+            // Sort documents based on selected sort order
+            function sortDocuments(sortType, items) {
+                const list = document.getElementById('document-list');
+                
+                items.sort((a, b) => {
+                    const titleA = a.querySelector('.doc-title')?.textContent || '';
+                    const titleB = b.querySelector('.doc-title')?.textContent || '';
+                    
+                    const dateTextA = a.querySelector('.doc-meta')?.textContent.match(/Date:\s*([0-9-]+)/) || ['', ''];
+                    const dateTextB = b.querySelector('.doc-meta')?.textContent.match(/Date:\s*([0-9-]+)/) || ['', ''];
+                    
+                    const dateA = dateTextA[1] || '';
+                    const dateB = dateTextB[1] || '';
+                    
+                    if (sortType === 'date-desc') {
+                        return dateB.localeCompare(dateA);
+                    } else if (sortType === 'date-asc') {
+                        return dateA.localeCompare(dateB);
+                    } else if (sortType === 'name-asc') {
+                        return titleA.localeCompare(titleB);
+                    } else if (sortType === 'name-desc') {
+                        return titleB.localeCompare(titleA);
+                    }
+                    
+                    return 0;
+                });
+                
+                // Re-append the items in the sorted order
+                items.forEach(item => list.appendChild(item));
+            }
+            
+            // Update document count display
+            function updateDocumentCount(count) {
+                const countDiv = document.querySelector('.document-count');
+                if (countDiv) {
+                    countDiv.textContent = `Found ${count} documents`;
+                }
+            }
+            
+            // Setup search functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const items = document.querySelectorAll('#document-list li');
+                let visibleCount = 0;
+                
+                items.forEach(item => {
+                    if (item.textContent.toLowerCase().includes(searchTerm)) {
+                        item.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                updateDocumentCount(visibleCount);
+            });
+            
+            // Set up event listeners for filters
+            applyFiltersBtn.addEventListener('click', applyFilters);
+            
+            resetFiltersBtn.addEventListener('click', function() {
+                categoryFilter.value = '';
+                yearFilter.value = '';
+                sortOrder.value = 'date-desc';
+                searchInput.value = '';
+                
+                // Show all documents and restore original order
+                const items = document.querySelectorAll('#document-list li');
+                items.forEach(item => {
+                    item.style.display = 'block';
+                });
+                
+                // Sort by newest first (default)
+                sortDocuments('date-desc', Array.from(items));
+                
+                // Update count
+                updateDocumentCount(items.length);
+            });
+            
+            // *** IMPROVED: Function to filter by keyword with better JSON handling ***
+            function filterByKeyword(clickedKeyword) {
+                const items = document.querySelectorAll('#document-list li');
+                let visibleCount = 0;
+                const lowerCaseClickedKeyword = clickedKeyword.toLowerCase();
+
+                items.forEach(item => {
+                    // Try to find all keyword buttons and keywords data attribute within this list item
+                    const keywordButtons = item.querySelectorAll('.keyword-btn');
+                    let foundMatch = false;
+                    
+                    // First try to match against the visible keyword buttons
+                    if (keywordButtons.length > 0) {
+                        for (const btn of keywordButtons) {
+                            // Use more flexible matching (case-insensitive, includes instead of exact)
+                            if (btn.textContent.toLowerCase().includes(lowerCaseClickedKeyword) || 
+                                lowerCaseClickedKeyword.includes(btn.textContent.toLowerCase())) {
+                                foundMatch = true;
+                                break; // Found a match for this item
+                            }
+                        }
+                    }
+                    
+                    // If no match found with buttons, try to find any text match in the document
+                    // This ensures we match keywords even if they're not shown as buttons
+                    if (!foundMatch && item.textContent.toLowerCase().includes(lowerCaseClickedKeyword)) {
+                        // Only match if it's a standalone word/phrase (avoid matching substrings of unrelated words)
+                        const textContent = item.textContent.toLowerCase();
+                        const wordBoundary = new RegExp(`\\b${lowerCaseClickedKeyword}\\b`);
+                        if (wordBoundary.test(textContent)) {
+                            foundMatch = true;
+                        }
+                    }
+                    
+                    // Show/hide based on match
+                    item.style.display = foundMatch ? 'block' : 'none';
+                    if (foundMatch) visibleCount++;
+                });
+
+                // Update count and maybe clear other filters?
+                updateDocumentCount(visibleCount);
+                
+                // Highlight the filter being used
+                const activeFilterLabel = document.getElementById('active-filter-label') || 
+                    createActiveFilterLabel();
+                
+                // Find the text span inside the label
+                const filterText = activeFilterLabel.querySelector('#filter-text');
+                if (filterText) {
+                    filterText.textContent = `Active Filter: Keyword "${clickedKeyword}"`;
+                } else {
+                    // Fallback if the span doesn't exist for some reason
+                    activeFilterLabel.textContent = `Active Filter: Keyword "${clickedKeyword}"`;
+                    // Ensure the clear button is still there
+                    const clearBtn = document.createElement('button');
+                    clearBtn.type = 'button';
+                    clearBtn.className = 'btn btn-sm btn-outline-secondary';
+                    clearBtn.textContent = 'Clear Filter';
+                    clearBtn.onclick = clearAllFilters;
+                    activeFilterLabel.appendChild(clearBtn);
+                }
+                activeFilterLabel.style.display = 'flex';
+            }
+            
+            // Helper function to create or get the active filter label
+            function createActiveFilterLabel() {
+                let label = document.getElementById('active-filter-label');
+                if (!label) {
+                    label = document.createElement('div');
+                    label.id = 'active-filter-label';
+                    label.className = 'alert alert-info';
+                    label.style.marginTop = '10px';
+                    label.style.padding = '5px 10px';
+                    label.style.display = 'none';
+                    label.style.display = 'flex';
+                    label.style.justifyContent = 'space-between';
+                    label.style.alignItems = 'center';
+                    
+                    // Create text container
+                    const textSpan = document.createElement('span');
+                    textSpan.id = 'filter-text';
+                    label.appendChild(textSpan);
+                    
+                    // Create clear button
+                    const clearBtn = document.createElement('button');
+                    clearBtn.type = 'button';
+                    clearBtn.className = 'btn btn-sm btn-outline-secondary';
+                    clearBtn.textContent = 'Clear Filter';
+                    clearBtn.onclick = clearAllFilters;
+                    label.appendChild(clearBtn);
+                    
+                    // Add it just above document list
+                    const docList = document.getElementById('document-list');
+                    docList.parentNode.insertBefore(label, docList);
+                }
+                return label;
+            }
+            
+            // Function to clear all filters and reset the view
+            function clearAllFilters() {
+                // Reset all form filters
+                document.getElementById('document-search').value = '';
+                document.getElementById('category-filter').value = '';
+                document.getElementById('year-filter').value = '';
+                document.getElementById('sort-order').value = 'date-desc';
+                document.getElementById('doc-type-filter').value = 'all';
+                
+                // If we had a non-all document type, we need to reload all documents
+                loadDocuments();
+                
+                // Hide the active filter label
+                const filterLabel = document.getElementById('active-filter-label');
+                if (filterLabel) {
+                    filterLabel.style.display = 'none';
+                }
+            }
+            
+            // *** ADDED: Function to show document details in a modal ***
+            async function showDetails(filename) {
+                if (!filename) {
+                    console.error("No filename provided for details view.");
+                    alert("Cannot show details: filename is missing.");
+                    return;
+                }
+                try {
+                    // Use cache busting for detail fetch too
+                    const detailUrl = `/api/document/${encodeURIComponent(filename)}?nocache=${new Date().getTime()}`;
+                    const response = await fetch(detailUrl);
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: `HTTP error! status: ${response.status}` }));
+                        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    }
+                    const doc = await response.json();
+
+                    // Populate Modal
+                    document.getElementById('detailsModalLabel').textContent = doc.filename || 'Document Details';
+                    const sourceLink = document.getElementById('modalSourceUrl');
+                    sourceLink.href = doc.source_url || '#';
+                    sourceLink.textContent = doc.source_url || 'N/A';
+                    if (!doc.source_url) {
+                         sourceLink.style.pointerEvents = 'none'; // Disable link if no URL
+                         sourceLink.style.color = '#6c757d'; // Grey out
+                    } else {
+                         sourceLink.style.pointerEvents = 'auto';
+                         sourceLink.style.color = ''; // Reset color
+                    }
+
+                    document.getElementById('modalKeywords').textContent = doc.keywords || 'None provided';
+
+                    // Format keywords from JSON if needed
+                    if (doc.keywords) {
+                        try {
+                            // Check if keywords are in JSON format
+                            if (doc.keywords.trim().startsWith('[') && doc.keywords.trim().endsWith(']')) {
+                                const parsedKeywords = JSON.parse(doc.keywords);
+                                if (Array.isArray(parsedKeywords) && parsedKeywords.length > 0) {
+                                    document.getElementById('modalKeywords').textContent = parsedKeywords.join(', ');
+                                }
+                            }
+                        } catch (e) {
+                            console.error("Error parsing keywords in modal:", e);
+                            // Keep the original text if parsing fails
+                        }
+                    }
+
+                    // Format date robustly (improved version)
+                    let detailDate = 'Unknown';
+                    if (doc.document_date) {
+                        // Handle PDF 'D:YYYYMMDD...' format
+                        if (typeof doc.document_date === 'string' && doc.document_date.startsWith('D:')) {
+                            const pdfDateStr = doc.document_date.substring(2, 10); // YYYYMMDD
+                            if (pdfDateStr.length === 8 && /^\d{8}$/.test(pdfDateStr)) {
+                                // Format as DD/MM/YYYY
+                                detailDate = `${pdfDateStr.substring(6, 8)}/${pdfDateStr.substring(4, 6)}/${pdfDateStr.substring(0, 4)}`;
+                            } else {
+                                detailDate = 'Invalid PDF Date';
+                            }
+                        } else {
+                            // Try parsing other potential date strings
+                            try {
+                                const parsedDate = new Date(doc.document_date);
+                                // Check if the parsed date is valid
+                                if (!isNaN(parsedDate.getTime())) {
+                                     // Format as DD/MM/YYYY
+                                    const day = parsedDate.getDate().toString().padStart(2, '0');
+                                    const month = (parsedDate.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+                                    const year = parsedDate.getFullYear();
+                                    detailDate = `${day}/${month}/${year}`;
+                                } else {
+                                     detailDate = doc.document_date; // Use raw string if parsing fails
+                                }
+                            } catch (e) {
+                                detailDate = doc.document_date; // Fallback to raw string on error
+                            }
+                        }
+                    } else if (doc.download_date) {
+                         try {
+                            // Try parsing download date
+                             const parsedDate = new Date(doc.download_date);
+                             if (!isNaN(parsedDate.getTime())) {
+                                 const day = parsedDate.getDate().toString().padStart(2, '0');
+                                 const month = (parsedDate.getMonth() + 1).toString().padStart(2, '0'); // Month is 0-indexed
+                                 const year = parsedDate.getFullYear();
+                                 detailDate = `${day}/${month}/${year}`;
+                             } else {
+                                 detailDate = doc.download_date.split(' ')[0]; // Fallback to date part
+                             }
+                         } catch(e) {
+                            detailDate = doc.download_date.split(' ')[0]; // Fallback
+                         }
+                    }
+                     // Fallback for fixed dates if others fail
+                    if (detailDate === 'Unknown' || detailDate === 'Invalid PDF Date') {
+                        for (const [pattern, date] of Object.entries(fixedDates)) {
+                            if (doc.filename.includes(pattern)) {
+                                detailDate = date;
+                                break;
+                            }
+                        }
+                    }
+                    document.getElementById('modalDocDate').textContent = detailDate;
+
+
+                    // Show beginning of full text (e.g., first 1500 chars)
+                    const fullTextPreview = (doc.full_text || 'Full text not available.').substring(0, 1500);
+                    document.getElementById('modalFullText').textContent = fullTextPreview + (doc.full_text && doc.full_text.length > 1500 ? '...' : '');
+
+                    // Show download or visit button based on document type
+                    const downloadLink = document.getElementById('modalDownloadLink');
+                    if (doc.document_type === 'webpage') {
+                        downloadLink.href = doc.source_url;
+                        downloadLink.removeAttribute('download');
+                        downloadLink.className = 'btn btn-info';
+                        downloadLink.textContent = 'Visit Webpage';
+                        downloadLink.setAttribute('target', '_blank');
+                    } else {
+                        downloadLink.href = `/download/${encodeURIComponent(doc.filename)}`;
+                        downloadLink.setAttribute('download', doc.filename || 'download');
+                        downloadLink.className = 'btn btn-success';
+                        downloadLink.textContent = 'Download Original';
+                        downloadLink.removeAttribute('target');
+                    }
+
+                    // Show Modal using Bootstrap's JavaScript API
+                    const detailsModalElement = document.getElementById('detailsModal');
+                    if (!detailsModalElement) {
+                        console.error("Modal element #detailsModal not found!");
+                        alert("Error: Could not find the details modal element.");
+                        return;
+                    }
+                    // Ensure Bootstrap object exists
+                    if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+                        console.error("Bootstrap JavaScript not loaded!");
+                        alert("Error: Bootstrap JavaScript is required for modals.");
+                        return;
+                    }
+                    const detailsModal = bootstrap.Modal.getOrCreateInstance(detailsModalElement);
+                    detailsModal.show();
+
+                } catch (error) {
+                    alert(`Error loading details for ${filename}: ${error.message}`);
+                }
+            }
+            
+            // Load documents when page loads
+            loadDocuments();
+        });
+    </script>
+
+    <!-- Bootstrap Modal for Document Details -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Document Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Source URL:</strong> <a id="modalSourceUrl" href="#" target="_blank" rel="noopener noreferrer">N/A</a></p>
+                    <p><strong>Document Date:</strong> <span id="modalDocDate">N/A</span></p>
+                    <p><strong>Keywords:</strong> <span id="modalKeywords">None</span></p>
+                    <hr>
+                    <h6>Text Preview:</h6>
+                    <pre id="modalFullText" style="white-space: pre-wrap; word-wrap: break-word; max-height: 400px; overflow-y: auto; background-color: #f8f9fa; padding: 10px; border-radius: 4px;"></pre>
+                </div>
+                <div class="modal-footer">
+                     <a id="modalDownloadLink" href="#" class="btn btn-success" download>Download Original</a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS Bundle (includes Popper) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js?v={{ app_version }}"></script>
+    <script src="{{ url_for('static', filename='app.js') }}?v={{ app_version }}"></script>
+</body>
+</html> 
